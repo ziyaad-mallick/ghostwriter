@@ -16,20 +16,16 @@
                 <span class="logo-text">Ghostwriter</span>
             </a>
             <ul class="nav-links">
-                <li><a href="./index.html" class="nav-link">Train</a></li>
-                <li><a href="./score.html" class="nav-link">Score</a></li>
-                <li><a href="./rewrite.html" class="nav-link">Rewrite</a></li>
+                <li><a href="./index.html" class="nav-link">Analyze</a></li>
                 <li><a href="./profile.html" class="nav-link active">Profiles</a></li>
             </ul>
         </div>
     </nav>
 
     <div class="container">
-        <div id="loading">Loading wordfreq data...</div>
-
         <div class="page-header">
-            <h1>Your Profiles</h1>
-            <p>Manage and inspect your writing style profiles.</p>
+            <h1>Your Writing Profiles</h1>
+            <p>View and manage your saved stylometric fingerprints.</p>
         </div>
 
         <div class="content-grid">
@@ -96,62 +92,24 @@
             });
         }
 
-        function displayProfileDetails(name, fp) {
-            let detailCard = document.querySelector('.fingerprint-detail-card');
+        function displayProfileDetails(name, profile) {
+            let detailCard = document.querySelector('.profile-detail-card');
             if (!detailCard) {
                 const contentGrid = document.querySelector('.content-grid');
                 detailCard = document.createElement('div');
-                detailCard.className = 'card fingerprint-detail-card';
+                detailCard.className = 'card profile-detail-card';
                 contentGrid.appendChild(detailCard);
             }
 
-            const labels = {
-                'avg_sentence_length': 'Avg Sentence Length',
-                'sentence_length_variance': 'Sentence Variance',
-                'vocab_rarity': 'Vocab Rarity',
-                'filler_rate': 'Filler Rate',
-                'contraction_rate': 'Contraction Rate',
-                'paragraph_rhythm': 'Paragraph Rhythm',
-                'capitalization_score': 'Capitalization',
-            };
+            // Display profile metadata
+            const wordCount = profile.wordCount || 0;
+            const chunkCount = profile.chunkCount || 0;
 
-            const formats = {
-                'avg_sentence_length': v => v.toFixed(2) + ' words',
-                'sentence_length_variance': v => v.toFixed(3),
-                'vocab_rarity': v => v.toFixed(3),
-                'filler_rate': v => v.toFixed(2) + '%',
-                'contraction_rate': v => v.toFixed(2) + '%',
-                'paragraph_rhythm': v => v.toFixed(3) + ' sent/para',
-                'capitalization_score': v => (v * 100).toFixed(1) + '%',
-            };
-
-            let html = `<h2>${escapeHtml(name)} — Detailed</h2><div class="fingerprint-grid">`;
-            for (const key of Object.keys(labels)) {
-                const label = labels[key];
-                const value = fp[key];
-                const formatted = formats[key](value);
-                html += `
-                    <div class="fingerprint-item">
-                        <span class="label">${label}</span>
-                        <span class="value">${formatted}</span>
-                    </div>
-                `;
-            }
-            html += '</div>';
-
-            if (fp.punctuation_tics && Object.keys(fp.punctuation_tics).length) {
-                html += '<h3 style="margin-top: 2rem;">Punctuation Tics (per 1000 chars)</h3><div class="fingerprint-grid">';
-                for (const [key, val] of Object.entries(fp.punctuation_tics)) {
-                    const label = key.replace(/_/g, ' ').charAt(0).toUpperCase() + key.replace(/_/g, ' ').slice(1);
-                    html += `
-                        <div class="fingerprint-item">
-                            <span class="label">${label}</span>
-                            <span class="value">${val.toFixed(2)}</span>
-                        </div>
-                    `;
-                }
-                html += '</div>';
-            }
+            let html = `<h2>${escapeHtml(name)} — Profile Details</h2>`;
+            html += `<p><strong>Words analyzed:</strong> ${wordCount.toLocaleString()}</p>`;
+            html += `<p><strong>Text chunks:</strong> ${chunkCount}</p>`;
+            html += `<p><strong>Anchor calibration mean:</strong> ${(profile.anchorMean || 0).toFixed(3)}</p>`;
+            html += `<p><strong>Anchor calibration std:</strong> ${(profile.anchorStd || 0).toFixed(3)}</p>`;
 
             detailCard.innerHTML = html;
         }
@@ -174,14 +132,16 @@
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
             alert.textContent = message;
-            container.insertBefore(alert, container.firstChild.nextSibling);
+
+            const pageHeader = document.querySelector('.page-header');
+            if (pageHeader) {
+                pageHeader.parentNode.insertBefore(alert, pageHeader.nextSibling);
+            } else {
+                container.insertBefore(alert, container.firstChild);
+            }
 
             setTimeout(() => alert.remove(), 5000);
         }
-
-        // No wordfreq needed on this page — hide the loading indicator.
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.style.display = 'none';
 
         // Initial render
         renderProfileList();

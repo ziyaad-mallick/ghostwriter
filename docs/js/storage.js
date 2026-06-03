@@ -1,25 +1,47 @@
 /**
  * localStorage wrapper for profile management.
+ * Stores both the profile (result of buildProfile) and raw samples (for rebuilding).
  */
 
-const PREFIX = 'ghostwriter:profile:';
+const PROFILE_PREFIX = 'ghostwriter:profile:';
+const SAMPLES_PREFIX = 'ghostwriter:samples:';
 
 /**
- * Save a profile to localStorage.
+ * Save a profile and its samples to localStorage.
  */
-export function saveProfile(name, fingerprint) {
-  const key = PREFIX + name;
-  localStorage.setItem(key, JSON.stringify(fingerprint));
+export function saveProfile(name, profile, samples = []) {
+  const profileKey = PROFILE_PREFIX + name;
+  const samplesKey = SAMPLES_PREFIX + name;
+  localStorage.setItem(profileKey, JSON.stringify(profile));
+  localStorage.setItem(samplesKey, JSON.stringify(samples));
 }
 
 /**
  * Load a profile from localStorage.
  */
 export function loadProfile(name) {
-  const key = PREFIX + name;
-  const data = localStorage.getItem(key);
+  const profileKey = PROFILE_PREFIX + name;
+  const data = localStorage.getItem(profileKey);
   if (!data) return null;
-  return JSON.parse(data);
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Load samples for a profile.
+ */
+export function loadSamples(name) {
+  const samplesKey = SAMPLES_PREFIX + name;
+  const data = localStorage.getItem(samplesKey);
+  if (!data) return [];
+  try {
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -29,8 +51,8 @@ export function listProfiles() {
   const profiles = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key.startsWith(PREFIX)) {
-      const name = key.slice(PREFIX.length);
+    if (key.startsWith(PROFILE_PREFIX)) {
+      const name = key.slice(PROFILE_PREFIX.length);
       profiles.push(name);
     }
   }
@@ -38,17 +60,19 @@ export function listProfiles() {
 }
 
 /**
- * Delete a profile from localStorage.
+ * Delete a profile and its samples from localStorage.
  */
 export function deleteProfile(name) {
-  const key = PREFIX + name;
-  localStorage.removeItem(key);
+  const profileKey = PROFILE_PREFIX + name;
+  const samplesKey = SAMPLES_PREFIX + name;
+  localStorage.removeItem(profileKey);
+  localStorage.removeItem(samplesKey);
 }
 
 /**
  * Check if a profile exists.
  */
 export function profileExists(name) {
-  const key = PREFIX + name;
-  return localStorage.getItem(key) !== null;
+  const profileKey = PROFILE_PREFIX + name;
+  return localStorage.getItem(profileKey) !== null;
 }
