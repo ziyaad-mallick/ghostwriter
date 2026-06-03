@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghostwriter — Profiles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-icon">✨</span>
+                <span class="logo-text">Ghostwriter</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="./index.html" class="nav-link">Train</a></li>
+                <li><a href="./score.html" class="nav-link">Score</a></li>
+                <li><a href="./rewrite.html" class="nav-link">Rewrite</a></li>
+                <li><a href="./profile.html" class="nav-link active">Profiles</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="loading">Loading wordfreq data...</div>
+
+        <div class="page-header">
+            <h1>Your Profiles</h1>
+            <p>Manage and inspect your writing style profiles.</p>
+        </div>
+
+        <div class="content-grid">
+            <div class="card profile-list-card">
+                <h2>Saved Profiles</h2>
+                <div id="profile-list-container">
+                    <p class="empty-state">No profiles yet. <a href="./index.html">Create one →</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Ghostwriter — 100% local, no cloud, no APIs. Pure statistical NLP.</p>
+    </footer>
+
+    <script type="module">
+        import { listProfiles, loadProfile, deleteProfile } from './js/storage.js';
+
+        function renderProfileList() {
+            const profiles = listProfiles();
+            const container = document.getElementById('profile-list-container');
+
+            if (!profiles.length) {
+                container.innerHTML = '<p class="empty-state">No profiles yet. <a href="./index.html">Create one →</a></p>';
+                return;
+            }
+
+            let html = '<ul class="profile-list">';
+            for (const name of profiles) {
+                html += `
+                    <li class="profile-item">
+                        <a href="#" class="profile-link" data-profile="${name}">${escapeHtml(name)}</a>
+                        <button type="button" class="btn btn-small btn-danger delete-btn" data-profile="${name}">Delete</button>
+                    </li>
+                `;
+            }
+            html += '</ul>';
+            container.innerHTML = html;
+
+            // Wire delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const name = btn.getAttribute('data-profile');
+                    if (confirm(`Delete profile "${name}"?`)) {
+                        deleteProfile(name);
+                        renderProfileList();
+                        showAlert(`Profile "${name}" deleted.`, 'success');
+                    }
+                });
+            });
+
+            // Wire profile links
+            document.querySelectorAll('.profile-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const name = link.getAttribute('data-profile');
+                    const fp = loadProfile(name);
+                    if (fp) {
+                        displayProfileDetails(name, fp);
+                    }
+                });
+            });
+        }
+
+        function displayProfileDetails(name, fp) {
+            let detailCard = document.querySelector('.fingerprint-detail-card');
+            if (!detailCard) {
+                const contentGrid = document.querySelector('.content-grid');
+                detailCard = document.createElement('div');
+                detailCard.className = 'card fingerprint-detail-card';
+                contentGrid.appendChild(detailCard);
+            }
+
+            const labels = {
+                'avg_sentence_length': 'Avg Sentence Length',
+                'sentence_length_variance': 'Sentence Variance',
+                'vocab_rarity': 'Vocab Rarity',
+                'filler_rate': 'Filler Rate',
+                'contraction_rate': 'Contraction Rate',
+                'paragraph_rhythm': 'Paragraph Rhythm',
+                'capitalization_score': 'Capitalization',
+            };
+
+            const formats = {
+                'avg_sentence_length': v => v.toFixed(2) + ' words',
+                'sentence_length_variance': v => v.toFixed(3),
+                'vocab_rarity': v => v.toFixed(3),
+                'filler_rate': v => v.toFixed(2) + '%',
+                'contraction_rate': v => v.toFixed(2) + '%',
+                'paragraph_rhythm': v => v.toFixed(3) + ' sent/para',
+                'capitalization_score': v => (v * 100).toFixed(1) + '%',
+            };
+
+            let html = `<h2>${escapeHtml(name)} — Detailed</h2><div class="fingerprint-grid">`;
+            for (const key of Object.keys(labels)) {
+                const label = labels[key];
+                const value = fp[key];
+                const formatted = formats[key](value);
+                html += `
+                    <div class="fingerprint-item">
+                        <span class="label">${label}</span>
+                        <span class="value">${formatted}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+
+            if (fp.punctuation_tics && Object.keys(fp.punctuation_tics).length) {
+                html += '<h3 style="margin-top: 2rem;">Punctuation Tics (per 1000 chars)</h3><div class="fingerprint-grid">';
+                for (const [key, val] of Object.entries(fp.punctuation_tics)) {
+                    const label = key.replace(/_/g, ' ').charAt(0).toUpperCase() + key.replace(/_/g, ' ').slice(1);
+                    html += `
+                        <div class="fingerprint-item">
+                            <span class="label">${label}</span>
+                            <span class="value">${val.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            detailCard.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;',
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function showAlert(message, type = 'info') {
+            const container = document.querySelector('.container');
+            if (!container) return;
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.insertBefore(alert, container.firstChild.nextSibling);
+
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        // No wordfreq needed on this page — hide the loading indicator.
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+
+        // Initial render
+        renderProfileList();
+    </script>
+</body>
+</html>

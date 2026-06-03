@@ -2,6 +2,37 @@
 
 **Ghostwriter** is a 100% local, no-login web app that learns your writing style and helps you evaluate and rewrite text to match it.
 
+## Live / Hosted (Static Web App)
+
+**Zero setup required!** A fully static version is available in the `docs/` directory and hosted via GitHub Pages.
+
+- **URL:** Visit the live version at your GitHub Pages site (or run locally: see below)
+- **No backend:** Everything runs 100% in your browser
+- **No server upload:** Your writing samples never leave your device — stored only in localStorage
+- **No dependencies:** Pure HTML, CSS, and JavaScript (+ Chart.js for visualization)
+
+To run locally:
+```bash
+cd docs/
+python -m http.server 8123
+# Visit http://localhost:8123 in your browser
+```
+
+Or open `docs/index.html` directly in your browser (modern browsers support ES modules over `file://` in some cases; a local server is safer).
+
+The static version includes:
+- All 4 core pages: Train, Score, Rewrite, Profiles
+- Same dark violet theme and UI as the Python version
+- Full fingerprinting, scoring, and rewriting (deterministic — same input always gives same output)
+- localStorage-based profile storage (per-browser, private)
+- Pre-computed English vocabulary frequency data (`docs/data/wordfreq_en.json`)
+
+### Limitations vs. Python Version
+- **No vocabulary substitution:** WordNet (WordNet) is not available in the browser. The rewriter omits this transform; all other 5 transforms (sentence splits/merges, contractions, punctuation, fillers, capitalization) are fully ported.
+- **No multi-language support:** Currently English only.
+
+---
+
 ## What It Does
 
 1. **Train** — Paste writing samples to build a "fingerprint" of your style

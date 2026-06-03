@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghostwriter — Train Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="./index.html" class="logo">
+                <span class="logo-icon">✨</span>
+                <span class="logo-text">Ghostwriter</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="./index.html" class="nav-link active">Train</a></li>
+                <li><a href="./score.html" class="nav-link">Score</a></li>
+                <li><a href="./rewrite.html" class="nav-link">Rewrite</a></li>
+                <li><a href="./profile.html" class="nav-link">Profiles</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="loading">Loading wordfreq data...</div>
+
+        <div class="page-header">
+            <h1>Train Your Profile</h1>
+            <p>Paste writing samples to create or update your writing profile.</p>
+            <p style="color: var(--text-muted); margin-top: 1rem; font-size: 0.95rem;">
+                <strong>Runs 100% in your browser — your writing never leaves your device.</strong>
+            </p>
+        </div>
+
+        <div class="content-grid">
+            <div class="card form-card">
+                <form class="form">
+                    <div class="form-group">
+                        <label for="profile_name">Profile Name</label>
+                        <input type="text" id="profile_name" name="profile_name" placeholder="e.g. Personal, Essays, Casual"
+                               required autocomplete="off">
+                        <small>Unique identifier for this writing style profile.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sample_text">Writing Sample</label>
+                        <textarea id="sample_text" name="sample_text" placeholder="Paste your writing here..."
+                                  rows="12" required></textarea>
+                        <small>The more text, the better. 500+ words recommended.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Train Profile</button>
+                </form>
+            </div>
+
+            <div class="card fingerprint-card" style="display: none;">
+                <h2>Fingerprint</h2>
+                <div class="fingerprint-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Ghostwriter — 100% local, no cloud, no APIs. Pure statistical NLP.</p>
+    </footer>
+
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>
