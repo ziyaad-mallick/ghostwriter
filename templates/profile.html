@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Profiles — Ghostwriter{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Your Profiles</h1>
+    <p>Manage and inspect your writing style profiles.</p>
+</div>
+
+<div class="content-grid">
+    <div class="card profile-list-card">
+        <h2>Saved Profiles</h2>
+        {% if profiles %}
+            <ul class="profile-list">
+                {% for p in profiles %}
+                    <li class="profile-item">
+                        <a href="{{ url_for('profile', profile=p) }}" class="profile-link">
+                            {{ p }}
+                        </a>
+                        <form method="POST" class="profile-delete-form" style="display: inline;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="profile_name" value="{{ p }}">
+                            <button type="submit" class="btn btn-small btn-danger"
+                                    onclick="return confirm('Delete profile {{ p }}?')">Delete</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-state">No profiles yet. <a href="{{ url_for('train') }}">Create one →</a></p>
+        {% endif %}
+    </div>
+
+    {% if selected_profile and selected_fingerprint %}
+    <div class="card fingerprint-detail-card">
+        <h2>{{ selected_profile }} — Detailed</h2>
+        <div class="fingerprint-grid">
+            <div class="fingerprint-item">
+                <span class="label">Avg Sentence Length</span>
+                <span class="value">{{ "%.2f" | format(selected_fingerprint.avg_sentence_length) }} words</span>
+            </div>
+            <div class="fingerprint-item">
+                <span class="label">Sentence Variance</span>
+                <span class="value">{{ "%.3f" | format(selected_fingerprint.sentence_length_variance) }}</span>
+            </div>
+            <div class="fingerprint-item">
+                <span class="label">Vocab Rarity</span>
+                <span class="value">{{ "%.3f" | format(selected_fingerprint.vocab_rarity) }}</span>
+            </div>
+            <div class="fingerprint-item">
+                <span class="label">Filler Rate</span>
+                <span class="value">{{ "%.2f" | format(selected_fingerprint.filler_rate) }}%</span>
+            </div>
+            <div class="fingerprint-item">
+                <span class="label">Contraction Rate</span>
+                <span class="value">{{ "%.2f" | format(selected_fingerprint.contraction_rate) }}%</span>
+            </div>
+            <div class="fingerprint-item">
+                <span class="label">Paragraph Rhythm</span>
+                <span class="value">{{ "%.3f" | format(selected_fingerprint.paragraph_rhythm) }} sent/para</span>
+            </div>
+            <div class="fingerprint-item">
+                <span class="label">Capitalization</span>
+                <span class="value">{{ "%.1f" | format(selected_fingerprint.capitalization_score * 100) }}%</span>
+            </div>
+        </div>
+
+        {% if selected_fingerprint.punctuation_tics %}
+        <h3 style="margin-top: 2rem;">Punctuation Tics (per 1000 chars)</h3>
+        <div class="fingerprint-grid">
+            {% for key, val in selected_fingerprint.punctuation_tics.items() %}
+            <div class="fingerprint-item">
+                <span class="label">{{ key.replace('_', ' ').title() }}</span>
+                <span class="value">{{ "%.2f" | format(val) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

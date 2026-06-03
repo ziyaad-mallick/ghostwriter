@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Score Text — Ghostwriter{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Score Your Text</h1>
+    <p>See how much a piece of text sounds like you.</p>
+</div>
+
+{% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<div class="content-grid">
+    <div class="card form-card">
+        <form method="POST" class="form">
+            <div class="form-group">
+                <label for="profile_name">Select Profile</label>
+                <select id="profile_name" name="profile_name" required>
+                    <option value="">-- Choose a profile --</option>
+                    {% for p in profiles %}
+                        <option value="{{ p }}">{{ p }}</option>
+                    {% endfor %}
+                </select>
+                {% if not profiles %}
+                    <small style="color: #ff66ff;">No profiles yet. <a href="{{ url_for('train') }}">Create one →</a></small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="input_text">Text to Score</label>
+                <textarea id="input_text" name="input_text" placeholder="Paste text here..."
+                          rows="10" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" {% if not profiles %}disabled{% endif %}>Score Text</button>
+        </form>
+    </div>
+
+    {% if overall_score is defined and overall_score is not none %}
+    <div class="score-section">
+        <div class="card score-card">
+            <h2>You Score</h2>
+            <div class="score-display">
+                <div class="score-number">{{ overall_score }}</div>
+                <div class="score-label">Match %</div>
+            </div>
+            <p class="score-message">
+                {% if overall_score >= 80 %}
+                    This text sounds very much like you!
+                {% elif overall_score >= 60 %}
+                    This text mostly sounds like you.
+                {% elif overall_score >= 40 %}
+                    This text has some differences from your style.
+                {% else %}
+                    This text differs significantly from your style.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="card chart-card">
+            <h3>Dimension Breakdown</h3>
+            <canvas id="radarChart" style="max-width: 100%; height: 300px;"></canvas>
+        </div>
+    </div>
+
+    {% if divergences %}
+    <div class="card divergence-card">
+        <h3>Key Differences</h3>
+        <ul class="divergence-list">
+            {% for dim, msg in divergences %}
+                <li>{{ msg }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <script>
+        const chartData = {{ chart_data | safe }};
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        const radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Match Score',
+                    data: chartData.data,
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#a855f7',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scale: {
+                    max: 100,
+                    min: 0,
+                    ticks: {
+                        stepSize: 20,
+                    },
+                    gridLines: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Rewrite Text — Ghostwriter{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Rewrite to Your Style</h1>
+    <p>Transform text to match your writing style with a strength slider.</p>
+</div>
+
+{% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<div class="content-grid">
+    <div class="card form-card">
+        <form method="POST" class="form">
+            <div class="form-group">
+                <label for="profile_name">Select Profile</label>
+                <select id="profile_name" name="profile_name" required>
+                    <option value="">-- Choose a profile --</option>
+                    {% for p in profiles %}
+                        <option value="{{ p }}">{{ p }}</option>
+                    {% endfor %}
+                </select>
+                {% if not profiles %}
+                    <small style="color: #ff66ff;">No profiles yet. <a href="{{ url_for('train') }}">Create one →</a></small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="input_text">Text to Rewrite</label>
+                <textarea id="input_text" name="input_text" placeholder="Paste text here..."
+                          rows="10" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="aggressiveness">
+                    Aggressiveness:
+                    <span class="aggressiveness-value" id="aggressiveness_display">50</span>%
+                </label>
+                <input type="range" id="aggressiveness" name="aggressiveness"
+                       min="0" max="100" value="50" class="slider">
+                <small>0% = barely changed, 100% = maximum transformation</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" {% if not profiles %}disabled{% endif %}>Rewrite</button>
+        </form>
+
+        <script>
+            document.getElementById('aggressiveness').addEventListener('input', function(e) {
+                document.getElementById('aggressiveness_display').textContent = e.target.value;
+            });
+        </script>
+    </div>
+
+    {% if original_text %}
+    <div class="rewrite-section">
+        <div class="rewrite-comparison">
+            <div class="comparison-col">
+                <h3>Original</h3>
+                <div class="text-box original-text">{{ original_text }}</div>
+            </div>
+            <div class="comparison-col">
+                <h3>Rewritten ({{ aggressiveness }}% aggressiveness)</h3>
+                <div class="text-box rewritten-text">{{ rewritten_text }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
